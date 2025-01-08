@@ -6,7 +6,7 @@ Deno.serve({
     const url = new URL(req.url);
     console.log(req.headers.get("X-Forwarded-For"));
 
-    if (url.pathname == "/actor") {
+    if (url.pathname == "/acttor") {
         return new Response(await Deno.readFile("./docs/actor.json"), {
             headers: {
                 "Content-Type": "application/activity+json"
