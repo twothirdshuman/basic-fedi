@@ -112,6 +112,7 @@ console.log(await signRequest(new Request("https://wetdry.world/users/rarely_typ
 Deno.serve({
     port: 8005
 }, async (req) => {
+    console.log(req);
     const url = new URL(req.url);
 
     if (url.pathname == "/actor") {
