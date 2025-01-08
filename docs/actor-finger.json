@@ -1,0 +1,11 @@
+{
+	"subject": "acct:testing@fedi-test.mooo.com",
+
+	"links": [
+		{
+			"rel": "self",
+			"type": "application/activity+json",
+			"href": "https://fedi-test.mooo.com/actor"
+		}
+	]
+}
