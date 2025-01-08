@@ -3,8 +3,8 @@ import { rarelyTypicalRequest } from "./requests.ts";
 Deno.serve({
     port: 8005
 }, async (req) => {
-    console.log(req);
     const url = new URL(req.url);
+    console.log(req.headers.get("X-Forwarded-For"));
 
     if (url.pathname == "/actor") {
         return new Response(await Deno.readFile("./docs/actor.json"));
