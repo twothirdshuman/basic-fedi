@@ -7,7 +7,11 @@ Deno.serve({
     console.log(req.headers.get("X-Forwarded-For"));
 
     if (url.pathname == "/actor") {
-        return new Response(await Deno.readFile("./docs/actor.json"));
+        return new Response(await Deno.readFile("./docs/actor.json"), {
+            headers: {
+                "Content-Type": "application/activity+json"
+            }
+        });
     }
     if (url.pathname == "/.well-known/webfinger") {
         const resource = url.searchParams.get("resource");
