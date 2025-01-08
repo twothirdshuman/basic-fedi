@@ -5,7 +5,7 @@
 	],
 
 	"id": "https://fedi-test.mooo.com/actor",
-	"type": "Person",
+	"type": "Application",
 	"preferredUsername": "Testing username",
 	"inbox": "https://fedi-test.mooo.com/inbox",
 
