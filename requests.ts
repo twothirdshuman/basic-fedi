@@ -60,15 +60,14 @@ async function signRequest(req: Request): Promise<Request> {
         signedStringData
     ));
 
-    const signatureHeader = `keyId="https://fedi-test.com/actor",headers="(request-target) host date digest",signature=${signature}`;
-
+    const signatureHeader = `keyId="https://fedi-test.mooo.com/actor",headers="(request-target) host date digest",signature="${signature}"`;
+    const headers = Object.fromEntries(req.headers);
+    headers.host = getHost(req);
+    headers.date = httpDate;
+    headers.signature = signatureHeader;
+    headers.digest = digest;
     const reqReturn = new Request(req, {
-        headers: {
-            "Host": getHost(req),
-            "Date": httpDate,
-            "Signature": signatureHeader,
-            "Digest": digest
-        },
+        headers: headers,
         body: null
     });
 
@@ -93,14 +92,14 @@ setTimeout(async () => {
 }, 0);
 */
 
-async function rarelyTypicalRequest() {
+export async function rarelyTypicalRequest() {
     const res2 = await fetch(await signRequest(new Request("https://wetdry.world/users/rarely_typical", {
         headers: {
             "Accept":"application/activity+json"
         }
     })));
 
-    console.log(res2.status, res2.headers, await res2.json());
+    console.log(res2.status, res2.headers, await res2.text());
 }
 
 console.log(await signRequest(new Request("https://wetdry.world/users/rarely_typical", {
@@ -109,28 +108,3 @@ console.log(await signRequest(new Request("https://wetdry.world/users/rarely_typ
     }
 })));
 
-Deno.serve({
-    port: 8005
-}, async (req) => {
-    console.log(req);
-    const url = new URL(req.url);
-
-    if (url.pathname == "/actor") {
-        return new Response(await Deno.readFile("./docs/actor.json"));
-    }
-    if (url.pathname == "/.well-known/webfinger") {
-        const resource = url.searchParams.get("resource");
-        if (resource === "testing@fedi-test.mooo.com") {
-            return new Response(await Deno.readFile("./docs/actor-finger.json"));
-        }
-    }
-    if (url.pathname === "/") {
-        return new Response("This is the / document");
-    }
-    if (url.pathname === "/ask") {
-        await rarelyTypicalRequest();
-        return new Response("asked for rarely_typical info");
-    }
-
-    return new Response(null, {status:404});
-});
