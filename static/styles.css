@@ -1,0 +1,82 @@
+:root {
+    --background: #0f172a; /* tailwind slate 900 */
+    --panel: #1e293b; /* tailwind slate 800 */
+    --text: #f1f5f9; /* tailwind slate 100 */
+    --theme: #e11d48; /* tailwind rose 600 */
+    --theme-dark: color-mix(in srgb, var(--theme), var(--panel));
+}
+
+body {
+    margin: 0;
+    background-color: var(--background);
+    color: var(--text);
+    font-size: 16px;
+}
+
+textarea {
+    background-color: var(--panel);
+    resize: none;
+    outline: none;
+    font-family: system-ui, Roboto, sans-serif;
+    color: var(--text);   
+    font-size: inherit;
+}
+
+button {
+    background-color: var(--theme);
+    color: var(--text);
+    border: none;
+    transition: all 200ms ease;
+    font-size: 20px;
+}
+
+button:hover {
+    filter: brightness(80%);
+}
+
+button:active {
+    scale: 0.9;
+}
+
+.flex-right {
+    display: flex;
+    flex-direction: row;
+}
+
+.flex-down {
+    display: flex;
+    flex-direction: column;
+}
+
+.space-around {
+    justify-content: space-around;
+}
+
+.space-between {
+    justify-content: space-between;
+}
+
+.column-width {
+    min-width: 400px;
+}
+
+.post-textarea {
+    padding: 8px;
+    border-radius: 8px;
+    width: 400px;
+    height: 100px;
+    box-sizing: border-box;
+    border-width: 2px;
+    border-style: solid;
+    border-color: var(--theme-dark);
+    transition: all 200ms ease;
+}
+
+.post-textarea:focus {
+    border-color: var(--theme);
+}
+
+.pleep-button {
+    padding: 6px;
+    border-radius: 8px;
+}
