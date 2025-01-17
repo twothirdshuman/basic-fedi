@@ -60,7 +60,7 @@ async function signRequest(req: Request): Promise<Request> {
         signedStringData
     ));
 
-    const signatureHeader = `keyId="https://fedi-test.mooo.com/actor#main-key",headers="(request-target) host date digest",signature="${signature}"`;
+    const signatureHeader = `keyId="https://fedi-test.mooo.com/actor#main-key",algorithm="rsa-sha256",headers="(request-target) host date digest",signature="${signature}"`;
     const headers = Object.fromEntries(req.headers);
     headers.host = getHost(req);
     headers.date = httpDate;
