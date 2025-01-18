@@ -15,7 +15,7 @@ Deno.serve({
     }
     if (url.pathname == "/.well-known/webfinger") {
         const resource = url.searchParams.get("resource");
-        if (resource === "testing@fedi-test.mooo.com") {
+        if (resource === "acct:testing@fedi-test.mooo.com") {
             return new Response(await Deno.readFile("./docs/actor-finger.json"), {
                 headers: {
                     "Content-Type": "application/jrd+json"
