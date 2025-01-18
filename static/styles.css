@@ -1,9 +1,11 @@
 :root {
     --background: #0f172a; /* tailwind slate 900 */
     --panel: #1e293b; /* tailwind slate 800 */
+    --highlight: #334155; /* tailwind slate 700 */
     --text: #f1f5f9; /* tailwind slate 100 */
     --theme: #e11d48; /* tailwind rose 600 */
     --theme-dark: color-mix(in srgb, var(--theme), var(--panel));
+    --font-family: system-ui, Roboto, sans-serif;
 }
 
 body {
@@ -17,9 +19,13 @@ textarea {
     background-color: var(--panel);
     resize: none;
     outline: none;
-    font-family: system-ui, Roboto, sans-serif;
+    font-family: var(--font-family);
     color: var(--text);   
     font-size: inherit;
+}
+
+span {
+    font-family: var(--font-family);
 }
 
 button {
@@ -79,4 +85,17 @@ button:active {
 .pleep-button {
     padding: 6px;
     border-radius: 8px;
+}
+
+.post {
+    padding: 6px;
+    border-radius: 6px;
+    border-bottom: 1px solid var(--panel);
+    background-color: var(--background);
+    transition: all 200ms ease;
+    font-size: 1.5rem;
+}
+
+.post:hover {
+    background-color: var(--highlight);
 }

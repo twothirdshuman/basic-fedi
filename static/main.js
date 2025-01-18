@@ -1,10 +1,19 @@
 // @ts-check
 import { createSignal, batch, For } from "https://esm.sh/solid-js@1.8.1";
-import { createStore } from "https://esm.sh/solid-js@1.8.1/store"
+// import { createStore } from "https://esm.sh/solid-js@1.8.1/store"
 import { render } from "https://esm.sh/solid-js@1.8.1/web";
 import html from "https://esm.sh/solid-js@1.8.1/html";
 
-const [getPosts, setPosts] = createSignal(/** @type {string[]} */ ([]));
+const [getPosts, setPosts] = createSignal(["Mamma mia!", "wow solidjs doesn't suck balls", 
+    "you can only kiss yourself on the lips in a mirror",
+    "the mening of life is uifhiousfhoasiduf",
+    "your mom! HAHAHAHA got youuuuu!",
+    "WEEEWOOO WEEEWOOO WEEEWOOO",
+    "I am happy and so exicted!!",
+    "冰淇淋 冰淇淋 冰淇淋 冰淇淋 冰淇淋",
+    "This is a post",
+    "Sometimes I think but then i stop"].sort(() => Math.random() - 0.5));
+
 
 const InfoColumn = () => {
     return html`
@@ -24,8 +33,8 @@ const WritePostColumn = () => {
         setWaah(waah() + 1);
         if (textAreaRef !== undefined) {
             const posts = getPosts();
-            posts.push(textAreaRef?.value);
-            setPosts(posts);
+            const newPosts = [textAreaRef?.value, ...posts];
+            setPosts(newPosts);
         }
     };
 
@@ -56,20 +65,23 @@ const WritePostColumn = () => {
 
 /**
  * @typedef {{postText: string}} PostParam
- * @param {PostParam} 
+ * @param {PostParam} props
  */
 const Post = (props) => {
     return html`
-        <div>
-            <span>${props.}</span>
+        <div class="post">
+            <span>${props.postText}</span>
         </div>
     `;
 };
 
 const PostsColumn = () => {
+
     return html`
         <div class="flex-down column-width">
-
+            <${For} each=${getPosts} fallback=${html`<div>Loading...</div>`}>
+                ${(/** @type {string} */ item) => html`<${Post} postText="${item}"><//>`}
+            <//>
         </div>
     `
 };
