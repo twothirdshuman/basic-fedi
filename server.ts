@@ -71,7 +71,7 @@ fastify.post("/users/:username/inbox", (req, reply) => {
 })
 
 await fastify.listen({
-    port: 3000,
+    port: 8005,
     host: "0.0.0.0"
 });
 /*
