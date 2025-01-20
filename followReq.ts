@@ -1,3 +1,5 @@
+import { USER, HOSTNAME } from "./config.ts";
+
 function toBase64(arrbuff: ArrayBuffer): string {
     let binary = "";
     const bytes = new Uint8Array(arrbuff);
@@ -31,10 +33,11 @@ async function importRSAPrivateKey(pem: string): Promise<CryptoKey> {
 } 
 
 export async function Follow(recipientUrl: URL, recipientInbox: URL): Promise<undefined> {
-    const senderUrl = "https://example.com/users/rarely-typical";
-    const senderKey = "https://example.com/users/rarely-typical#main-key";
 
-    const activityId = "https://example.com/users/rarely-typical/follows/test";
+    const senderUrl = `https://${HOSTNAME}/users/${USER}`;
+    const senderKey = `https://${HOSTNAME}/users/${USER}#main-key`;
+
+    const activityId = `https://${HOSTNAME}/users/${USER}/follows/test`;
     const privateKey = importRSAPrivateKey(new TextDecoder("utf-8").decode(await Deno.readFile("private/user/private.pem")));
 
     const followRequestMessage = {
@@ -46,15 +49,16 @@ export async function Follow(recipientUrl: URL, recipientInbox: URL): Promise<un
     };
 
     const digest = toBase64(
-        await crypto.subtle.digest("SHA256", 
+        await crypto.subtle.digest("SHA-256", 
             new TextEncoder().encode(JSON.stringify(followRequestMessage))
         )
     );
 
-    const currentDate = new Date().toUTCString();
+    // const currentDate = new Date().toUTCString();
+    const currentDate = "Mon, 20 Jan 2025 09:12:32 GMT";
 
     const signatureText = new TextEncoder().encode( 
-        `(request-target): post ${recipientUrl.pathname}\ndigest: SHA256=${digest}\nhost: ${recipientUrl.hostname}\ndate: ${currentDate}`
+        `(request-target): post ${recipientInbox.pathname}\nhost: ${recipientUrl.hostname}\ndate: ${currentDate}\ndigest: SHA-256=${digest}`
     );
 
     const signature = toBase64(await crypto.subtle.sign({
@@ -73,13 +77,25 @@ export async function Follow(recipientUrl: URL, recipientInbox: URL): Promise<un
         'Signature': signatureHeader
     };
     
+    printRequest(recipientInbox.toString(), headers, JSON.stringify(followRequestMessage));
+
+    /*
     const r = await fetch(recipientInbox, {
         method: "POST",
         headers: headers,
-        body: followRequestMessage
+        body: JSON.stringify(followRequestMessage)
     });
     
     console.log(r);
     console.log((await r.json()));
+    */
+}   
 
+function printRequest(url: string, headers: object, body: string) {
+    console.log(`POST ${url}`);
+    for (const [key, value] of Object.entries(headers)) {
+        console.log(`${key}: ${value}`);
+    }
+    console.log();
+    console.log(body);
 }
