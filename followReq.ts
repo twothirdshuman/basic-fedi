@@ -54,8 +54,8 @@ export async function Follow(recipientUrl: URL, recipientInbox: URL): Promise<un
         )
     );
 
-    // const currentDate = new Date().toUTCString();
-    const currentDate = "Mon, 20 Jan 2025 09:12:32 GMT";
+    const currentDate = new Date().toUTCString();
+    // const currentDate = "Mon, 20 Jan 2025 09:12:32 GMT";
 
     const signatureText = new TextEncoder().encode( 
         `(request-target): post ${recipientInbox.pathname}\nhost: ${recipientUrl.hostname}\ndate: ${currentDate}\ndigest: SHA-256=${digest}`
@@ -68,7 +68,7 @@ export async function Follow(recipientUrl: URL, recipientInbox: URL): Promise<un
         signatureText
     ));
 
-    const signatureHeader = `keyId="${senderKey}",algorithm="rsa-sha256",headers="(request-target) digest host date",signature="${signature}"`;
+    const signatureHeader = `keyId="${senderKey}",algorithm="rsa-sha256",headers="(request-target) host date digest",signature="${signature}"`;
     const headers = {
         'Date': currentDate,
         'Content-Type': 'application/activity+json',
@@ -77,9 +77,9 @@ export async function Follow(recipientUrl: URL, recipientInbox: URL): Promise<un
         'Signature': signatureHeader
     };
     
-    printRequest(recipientInbox.toString(), headers, JSON.stringify(followRequestMessage));
+    // printRequest(recipientInbox.toString(), headers, JSON.stringify(followRequestMessage));
 
-    /*
+    
     const r = await fetch(recipientInbox, {
         method: "POST",
         headers: headers,
@@ -88,7 +88,7 @@ export async function Follow(recipientUrl: URL, recipientInbox: URL): Promise<un
     
     console.log(r);
     console.log((await r.json()));
-    */
+    
 }   
 
 function printRequest(url: string, headers: object, body: string) {
