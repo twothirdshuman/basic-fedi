@@ -1,111 +1,70 @@
-import Fastify from "npm:fastify";
-import { rarelyTypicalRequest } from "./requests.ts";
+import * as CONFIG from "./config.ts";
+import { Router } from "./router.ts";
 
-const inbox: unknown[] = [];
+const router = new Router();
 
-const fastify = Fastify({
-    logger: true
-});
+router.get("/", (_) => {
+    return new Response("this is /");
+})
 
-fastify.get("/", (_request, reply) => {
-    reply.send(inbox);
-});
-
-fastify.get("/users/:username", (req, reply) => {
-    const username = (req.params as {username:string}).username;
-    if (username !== "rarely-typical") {
-        reply.status(404).send({error: "User not found"});
-        return;
-    }
-
-    const publicKey = Deno.readFile("private/user/public.pem")
+router.get(`/users/${CONFIG.USER}`, async (_) => {
+    const publicKey = await Deno.readFile("private/user/public.pem")
         .then(byteArr => new TextDecoder("utf-8").decode(byteArr));
 
-    reply.header("content-type", "application/activity+json")
-    reply.send({
+    return new Response(JSON.stringify({
         "@context": [
             "https://www.w3.org/ns/activitystreams",
             "https://w3id.org/security/v1",
         ],
-        "id": "https://example.com/users/rarely-typical",
-        "inbox": "https://example.com/users/rarely-typical/inbox",
-        "outbox": "https://example.com/users/rarely-typical/outbox",
+        "id": `https://${CONFIG.HOSTNAME}/users/${CONFIG.USER}`,
+        "inbox": `https://${CONFIG.HOSTNAME}/users/${CONFIG.USER}/inbox`,
+        "outbox": `https://${CONFIG.HOSTNAME}/users/${CONFIG.USER}/outbox`,
         "type": "Person",
-        "name": "rarely-typical",
-        "preferredUsername": "rarely-typical",
+        "name": CONFIG.USER,
+        "preferredUsername": CONFIG.USER,
         "publicKey": {
-            "id": "https://example.com/users/rarely-typical#main-key",
-            /*"id": "https://example.com/users/zampano",*/
+            "id": `https://${CONFIG.HOSTNAME}/users/${CONFIG.USER}#main-key`,
+            "owner": `https://${CONFIG.HOSTNAME}/users/${CONFIG.USER}`,
             "publicKeyPem": publicKey
+        }
+    }), {
+        status: 200,
+        headers: {
+            "Content-Type": "application/activity+json"
         }
     });
 });
 
-fastify.get("/.well-known/webfinger", (req, reply) => {
-    const url = new URL(`https://127.0.0.1${String(req.url)}`);
+router.get("/.well-known/webfinger", (req) => {
+    const url = new URL(req.url);
     const resource = url.searchParams.get("resource");
 
-    if (resource !== "acct:rarely-typical@fedi-test.mooo.com") {
-        reply.status(404).send({error:"User not found"});
-        return;
+    if (resource !== `acct:${CONFIG.USER}@${CONFIG.HOSTNAME}`) {
+        return new Response('{"error":"User not found"}', {status:404,headers:{"Content-Type":"application/json"}});
     }
 
-    reply.header("content-type", "application/jrd+json")
-    reply.send({
-        "subject": "acct:rarely-typical@example.com",
+    return new Response(JSON.stringify({
+        "subject": `acct:${CONFIG.USER}@${CONFIG.HOSTNAME}`,
         "links": [
             {
                 "rel": "self",
                 "type": "application/activity+json",
-                "href": "https://example.com/users/rarely-typical"
+                "href": `https://${CONFIG.HOSTNAME}/users/${CONFIG.USER}`
             }
         ]
+    }), {
+        status: 200,
+        headers: {
+            "Content-Type": "application/jrd+json"
+        }
     });
 });
 
-fastify.post("/users/:username/inbox", (req, reply) => {
-    reply.status(202).send();
+Deno.serve((req) => {
+    const response = router.serve(req);
+    if (response !== undefined) {
+        return response;
+    }
 
-    console.log(req.headers);
-    inbox.push(req.body);
-})
-
-await fastify.listen({
-    port: 8005,
-    host: "0.0.0.0"
+    return new Response("Not found", { status:404 });
 });
-/*
-Deno.serve({
-    port: 8005
-}, async (req) => {
-    const url = new URL(req.url);
-    console.log(req.headers.get("X-Forwarded-For"));
-
-    if (url.pathname == "/actor") {
-        return new Response(await Deno.readFile("./docs/actor.json"), {
-            headers: {
-                "Content-Type": "application/activity+json"
-            }
-        });
-    }
-    if (url.pathname == "/.well-known/webfinger") {
-        const resource = url.searchParams.get("resource");
-        if (resource === "testing@fedi-test.mooo.com") {
-            return new Response(await Deno.readFile("./docs/actor-finger.json"), {
-                headers: {
-                    "Content-Type": "application/jrd+json"
-                }
-            });
-        }
-    }
-    if (url.pathname === "/") {
-        return new Response("This is the / document");
-    }
-    if (url.pathname === "/ask") {
-        await rarelyTypicalRequest();
-        return new Response("asked for rarely_typical info");
-    }
-
-    return new Response(null, {status:404});
-});
-*/

@@ -1,2 +1,2 @@
 export const HOSTNAME = "fedi-test.mooo.com";
-export const USER = "rarely-typical"
+export const USER = "rarely-typical";
