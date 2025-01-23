@@ -48,9 +48,19 @@ export async function Follow(recipientUrl: URL, recipientInbox: URL): Promise<un
         "object": recipientUrl
     };
 
+    const unfollowRequestMessage = {
+        "@context": "https://www.w3.org/ns/activitystreams",
+        "id": `${activityId}/undo`,
+        "type": "Undo",
+        "actor": senderUrl,
+        "object": followRequestMessage,
+    };
+
+    const reqBody = unfollowRequestMessage;
+
     const digest = toBase64(
         await crypto.subtle.digest("SHA-256", 
-            new TextEncoder().encode(JSON.stringify(followRequestMessage))
+            new TextEncoder().encode(JSON.stringify(reqBody))
         )
     );
 
@@ -83,11 +93,11 @@ export async function Follow(recipientUrl: URL, recipientInbox: URL): Promise<un
     const r = await fetch(recipientInbox, {
         method: "POST",
         headers: headers,
-        body: JSON.stringify(followRequestMessage)
+        body: JSON.stringify(reqBody)
     });
     
     console.log(r);
-    console.log((await r.json()));
+    console.log((await r.text()));
     
 }   
 

@@ -7,6 +7,10 @@ router.get("/", (_) => {
     return new Response("this is /");
 })
 
+router.get("/users/*/inbox", (req) => {
+    return new Response(`at site ${req.url}`);
+})
+
 router.get(`/users/${CONFIG.USER}`, async (_) => {
     const publicKey = await Deno.readFile("private/user/public.pem")
         .then(byteArr => new TextDecoder("utf-8").decode(byteArr));

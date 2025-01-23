@@ -1,8 +1,29 @@
 type ResponseFunc = ((request: Request) => Response) | ((request: Request) => Promise<Response>);
+type Route = string;
 interface Endpoint {
-    route: string,
+    route: Route,
     method: "GET" | "POST"
 };
+
+function isMatch(route: Route, url: URL): boolean {
+    const partsRoute = route.split("/");
+    const partsUrl = url.pathname.split("/");
+
+    if (partsRoute.length !== partsUrl.length) {
+        return false;
+    }
+    
+    for (let i = 0; i < partsRoute.length; i++) {
+        if (partsRoute[i] === "*") {
+            continue
+        }
+        if (partsRoute[i] !== partsUrl[i]) {
+            return false;
+        }
+    }
+
+    return true;
+}
 
 export class Router {
     routes: Map<Endpoint, ResponseFunc>;
@@ -33,7 +54,7 @@ export class Router {
             if (endpoint.method !== method) {
                 continue;
             }
-            if (endpoint.route !== url.pathname) {
+            if (!isMatch(endpoint.route, url)) {
                 continue;
             }
             responseFunc = func;
