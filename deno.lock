@@ -1,9 +1,13 @@
 {
   "version": "4",
   "specifiers": {
+    "jsr:@std/cli@*": "1.0.9",
     "jsr:@std/ulid@*": "1.0.0"
   },
   "jsr": {
+    "@std/cli@1.0.9": {
+      "integrity": "557e5865af000efbf3f737dcfea5b8ab86453594f4a9cd8d08c9fa83d8e3f3bc"
+    },
     "@std/ulid@1.0.0": {
       "integrity": "d41c3d27a907714413649fee864b7cde8d42ee68437d22b79d5de4f81d808780"
     }

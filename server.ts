@@ -1,6 +1,7 @@
 import * as CONFIG from "./config.ts";
 import { Router } from "./router.ts";
 import { ulid } from "jsr:@std/ulid";
+import { parseArgs } from "jsr:@std/cli/parse-args";
 
 const router = new Router();
 
@@ -77,7 +78,16 @@ router.get("/.well-known/webfinger", (req) => {
     });
 });
 
-Deno.serve((req) => {
+const flags = parseArgs(Deno.args, {
+    string: ["port"],
+    default: {
+        port: "8000"
+    }
+});
+
+Deno.serve({
+    port: Number(flags.port)
+}, (req) => {
     const response = router.serve(req);
     if (response !== undefined) {
         return response;
