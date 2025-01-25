@@ -99,12 +99,3 @@ export async function Follow(recipientUrl: URL, recipientInbox: URL): Promise<un
     console.log((await r.text()));
     
 }   
-
-function printRequest(url: string, headers: object, body: string) {
-    console.log(`POST ${url}`);
-    for (const [key, value] of Object.entries(headers)) {
-        console.log(`${key}: ${value}`);
-    }
-    console.log();
-    console.log(body);
-}
