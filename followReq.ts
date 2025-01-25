@@ -18,7 +18,6 @@ async function importRSAPrivateKey(pem: string): Promise<CryptoKey> {
 
     // Decode Base64 to ArrayBuffer
     const binaryDer = Uint8Array.from(atob(pemBody), (char) => char.charCodeAt(0));
-
     // Import the RSA private key
     return await crypto.subtle.importKey(
         "pkcs8", // The key format (PKCS #8 for private keys)

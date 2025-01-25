@@ -1,5 +1,6 @@
 import * as CONFIG from "./config.ts";
 import { Router } from "./router.ts";
+import { ulid } from "jsr:@std/ulid";
 
 const router = new Router();
 
@@ -7,8 +8,20 @@ router.get("/", (_) => {
     return new Response("this is /");
 })
 
-router.get("/users/*/inbox", (req) => {
-    return new Response(`at site ${req.url}`);
+router.post("/users/*/inbox", async (req) => {
+    const headers = Array.from(req.headers.entries());
+    const bodyText = await req.text();
+    let realBody: string | unknown = bodyText;
+    try {
+        realBody = JSON.parse(bodyText);
+    } catch (_err) { ; }
+
+    await Deno.writeFile(`dbs/${ulid()}.json`, new TextEncoder().encode(JSON.stringify({
+        headers: headers,
+        body: realBody
+    })));
+
+    return new Response(null, {status:201});
 })
 
 router.get(`/users/${CONFIG.USER}`, async (_) => {

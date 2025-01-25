@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "lib":[
-            "deno.window", "esnext", "dom"
+            "deno.unstable", "deno.window", "esnext", "dom"
         ]
     }
 }
