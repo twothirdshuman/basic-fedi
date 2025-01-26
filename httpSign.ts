@@ -59,6 +59,7 @@ async function digestIsCorrect(request: Request): Promise<boolean> {
 
 let checkDate = true;
 export function setCheckDate(value: boolean) {
+    console.warn("⚠️ ⚠️ WARNING: Disabling date checking is insecure and should only be used for testing purposes. ⚠️ ⚠️");
     checkDate = value;
 }
 async function containsValidHeaders(request: Request): Promise<boolean> {
