@@ -1,7 +1,7 @@
 import { USER, HOSTNAME } from "./config.ts";
 import { importRSAPrivateKey, toBase64 } from "./cryptoHelpers.ts";
 
-export async function Follow(recipientUrl: URL, recipientInbox: URL): Promise<undefined> {
+export async function follow(recipientUrl: URL, recipientInbox: URL): Promise<undefined> {
 
     const senderUrl = `https://${HOSTNAME}/users/${USER}`;
     const senderKey = `https://${HOSTNAME}/users/${USER}#main-key`;
@@ -25,7 +25,7 @@ export async function Follow(recipientUrl: URL, recipientInbox: URL): Promise<un
         "object": followRequestMessage,
     };
 
-    const reqBody = unfollowRequestMessage;
+    const reqBody = followRequestMessage;
 
     const digest = toBase64(
         await crypto.subtle.digest("SHA-256", 
@@ -68,4 +68,29 @@ export async function Follow(recipientUrl: URL, recipientInbox: URL): Promise<un
     console.log(r);
     console.log((await r.text()));
     
-}   
+}
+
+export async function signRequest(request: Request): Promise<Request> {
+    const privateKey = await importRSAPrivateKey(new TextDecoder("utf-8").decode(await Deno.readFile("private/user/private.pem")));
+
+    const currentDate = new Date().toUTCString();
+
+    const reqUrl = new URL(request.url);
+    const signatureText = new TextEncoder().encode( 
+        `(request-target): ${request.method.toLowerCase()} ${reqUrl.pathname}\nhost: ${reqUrl.hostname}\ndate: ${currentDate}`
+    );
+
+    const signature = toBase64(await crypto.subtle.sign({
+            name: "RSASSA-PKCS1-v1_5",
+        },
+        await privateKey,
+        signatureText
+    ));
+
+    const signatureHeader = `keyId="https://${HOSTNAME}/users/${USER}#main-key",algorithm="rsa-sha256",headers="(request-target) host date",signature="${signature}"`;
+
+    request.headers.set("Date", currentDate);
+    request.headers.set("Signature", signatureHeader);
+
+    return request;
+}

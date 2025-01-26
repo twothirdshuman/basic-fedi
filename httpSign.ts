@@ -57,6 +57,10 @@ async function digestIsCorrect(request: Request): Promise<boolean> {
     return hash === hashBuffer;
 }
 
+let checkDate = true;
+export function setCheckDate(value: boolean) {
+    checkDate = value;
+}
 async function containsValidHeaders(request: Request): Promise<boolean> {
     // the required headers are (request-target), host, date, and digest
     // if the request is a GET request, the digest header is not required
@@ -67,10 +71,10 @@ async function containsValidHeaders(request: Request): Promise<boolean> {
     }
 
     const host = request.headers.get("host");
-    if (host === null || host === CONFIG.HOSTNAME){  
+    if (host === null || host !== CONFIG.HOSTNAME){  
         return false;
     }
-
+    
     const dateString = request.headers.get("date");
     if (dateString === null) {
         return false;
@@ -78,11 +82,13 @@ async function containsValidHeaders(request: Request): Promise<boolean> {
     const currentDate = new Date();
     const date = new Date(dateString);
     
-    if (Math.abs(currentDate.getTime() - date.getTime()) > 30000) {
-        return false;
+    if (checkDate) {
+        if (Math.abs(currentDate.getTime() - date.getTime()) > 30000) {
+            return false;
+        }
     }
 
-    if (request.method !== "GET") {         
+    if (request.method !== "GET") {
         if (!await digestIsCorrect(request)) {
             return false;
         }
@@ -115,8 +121,8 @@ function getSignedString(request: ValidRequest): string | undefined {
     return signedString.trim();
 }
 
-async function verifySignature(request: Request, cryptoKey: CryptoKey): Promise<IsValidSignature> {
-    if (!containsValidHeaders(request)) {
+export async function verifySignature(request: Request, cryptoKey: CryptoKey): Promise<IsValidSignature> {
+    if (!await containsValidHeaders(request)) {
         return false;
     }
     const signedString = getSignedString(request);
