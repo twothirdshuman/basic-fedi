@@ -1,12 +1,13 @@
-type SupportedObjectTypes = "Delete" | "Accept" | "Create" | "Note" | "Collection";
+export type SupportedObjectTypes = "Delete" | "Accept" | "Create" | "Note" | "Collection";
+export type AtContextContext = URL | Map<string, URL>; 
 
-interface Object {
-    "@context": string | string[];
+export interface Object {
+    "@context": AtContextContext | AtContextContext[];
     type: SupportedObjectTypes;
     id: URL;
 };
 
-interface Note extends Object {
+export interface Note extends Object {
     type: "Note";
     summary: null | string; // assumed
     inReplyTo: null | URL; // assumed
@@ -28,17 +29,17 @@ interface Note extends Object {
     shares: Collection;
 };
     
-interface Collection extends Object {
+export interface Collection extends Object {
     type: "Collection";
     totalItems: number;
     first?: unknown; // no fucking clue some object i think
 }
 
-interface Activity extends Object {
+export interface Activity extends Object {
 
 };
 
-interface CreateActivity<ContainedObject extends Object> extends Activity {
+export interface CreateActivity<ContainedObject extends Object> extends Activity {
     type: "Create";
     actor: URL;
     published: Date;

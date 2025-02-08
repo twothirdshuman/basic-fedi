@@ -10,19 +10,7 @@ router.get("/", (_) => {
 })
 
 router.post("/users/*/inbox", async (req) => {
-    const headers = Array.from(req.headers.entries());
-    const bodyText = await req.text();
-    let realBody: string | unknown = bodyText;
-    try {
-        realBody = JSON.parse(bodyText);
-    } catch (_err) { ; }
-
-    await Deno.writeFile(`dbs/${ulid()}.json`, new TextEncoder().encode(JSON.stringify({
-        headers: headers,
-        body: realBody
-    })));
-
-    return new Response(null, {status:201});
+    return new Response(null, {status:501});
 })
 
 router.get(`/users/${CONFIG.USER}`, async (_) => {
