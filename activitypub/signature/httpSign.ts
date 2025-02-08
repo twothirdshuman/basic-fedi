@@ -1,5 +1,5 @@
 import { toBase64, fromBase64 } from "./cryptoHelpers.ts";
-import * as CONFIG from "./config.ts";
+import * as CONFIG from "../../config.ts";
 
 type IsValidSignature = boolean;
 type ValidRequest = Request;

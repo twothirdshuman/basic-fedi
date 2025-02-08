@@ -1,4 +1,4 @@
-import { USER, HOSTNAME } from "./config.ts";
+import { USER, HOSTNAME } from "../../config.ts";
 import { importRSAPrivateKey, toBase64 } from "./cryptoHelpers.ts";
 
 export async function follow(recipientUrl: URL, recipientInbox: URL): Promise<undefined> {

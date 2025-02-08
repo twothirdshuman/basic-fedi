@@ -1,6 +1,6 @@
 import { assert } from "jsr:@std/assert";
-import { verifySignature, setCheckDate } from "./httpSign.ts"; 
-import { importRSAPublicKey } from "./cryptoHelpers.ts";
+import { verifySignature, setCheckDate } from "../activitypub/signature/httpSign.ts"; 
+import { importRSAPublicKey } from "../activitypub/signature/cryptoHelpers.ts";
 
 Deno.test("can check rarely typical", async () => {
     setCheckDate(false);
