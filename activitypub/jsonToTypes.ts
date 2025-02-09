@@ -1,16 +1,47 @@
 import { SupportedObjectTypes } from "./types.ts";
 import { Note, CreateActivity, Object as APObject, AtContextContext } from "./types.ts";
+import { Some, Option, undefinedIfErr } from "../helpers.ts";
 
-// type Result<T, U> = {status:"ok",data:T} | {status:"error",data:U};
-type Option<T> = {status:"some",data:T} | undefined;
-function Some<T>(val: T): Option<T> { return {status:"some",data:val}; }
+function safeUrl(url: unknown): Option<URL> {
+    if (url instanceof URL || typeof url === "string") {
+        return undefinedIfErr(() => Some(new URL(url)));
+    }
+    return undefined;
+}
 
-function undefinedIfErr<T>(func: () => T): undefined | T {
-    try {
-        return func();
-    } catch (_err) {
+function safeDate(date: unknown): Option<Date> {
+    if (typeof date !== "string") {
         return undefined;
     }
+    const dateRet = new Date(date);
+    if (Number.isNaN(dateRet.valueOf())) {
+        return undefined;
+    }
+    return Some(dateRet);
+}
+
+function safeMap<T>(arr: unknown, func: (item: unknown) => T): Option<T[]> {
+    if (!Array.isArray(arr)) {
+        return undefined;
+    }
+
+    return Some(arr.map(func));
+} 
+
+function flatOptions<T>(val: Option<Option<T>[]>): Option<T[]> {
+    if (val === undefined) {
+        return undefined;
+    }
+    const ret = [];
+
+    for (const v of val.data) {
+        if (v === undefined) {
+            return undefined;
+        }
+        ret.push(v.data);
+    }
+
+    return Some(ret);
 }
 
 function isObject(obj: unknown): obj is Record<string, unknown> {
@@ -66,9 +97,12 @@ function parseObjectType(val: unknown): Option<SupportedObjectTypes> {
     return Some(result as SupportedObjectTypes);
 }
 
-export function readObject(jsonStr: string): Option<APObject> {
-    const json = undefinedIfErr(() => JSON.parse(jsonStr));
-    if (json === undefined) {
+export function readObject(json: unknown): Option<APObject> {
+    if (typeof json === "string") {
+        const tmp = json;
+        json = undefinedIfErr(() => JSON.parse(tmp));
+    }
+    if (!isObject(json)) {
         return undefined;
     }
 
@@ -77,7 +111,7 @@ export function readObject(jsonStr: string): Option<APObject> {
         return undefined;
     }
 
-    const id = undefinedIfErr(() => new URL(json.id));
+    const id = undefinedIfErr(() => safeUrl(json.id))?.data;
     if (id === undefined) {
         return undefined;
     }
@@ -91,5 +125,49 @@ export function readObject(jsonStr: string): Option<APObject> {
         "@context": context.data,
         "id": id,
         "type": objectType.data
+    });
+}
+
+export function readCreateActivity(jsonStr: string): Option<CreateActivity<APObject>> {
+    const asObject = readObject(jsonStr)?.data;
+    if (asObject === undefined) {
+        return undefined;
+    }
+    if (asObject.type !== "Create") {
+        return undefined;
+    }
+    const json: unknown = undefinedIfErr(() => JSON.parse(jsonStr));
+    if (!isObject(json)) {
+        return undefined;
+    }
+    const actor = safeUrl(json.actor);
+    if (actor === undefined) {
+        return undefined;
+    }
+    const published = safeDate(json.published);
+    if (published === undefined || Number.isNaN(published?.valueOf())) {
+        return undefined;
+    }
+    const to = flatOptions(safeMap(json.to, (url) => safeUrl(url)));
+    if (to === undefined) {
+        return undefined;
+    }
+    const cc = flatOptions(safeMap(json.to, (url) => safeUrl(url)));
+    if (cc === undefined) {
+        return undefined;
+    }
+    const object = readObject(json.object);
+    if (object === undefined) {
+        return undefined;
+    }
+
+    return Some({
+        ...asObject,
+        type: "Create",
+        actor: actor.data,
+        published: published.data,
+        to: to.data,
+        cc: cc.data,
+        object: object.data
     });
 }
