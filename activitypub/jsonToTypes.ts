@@ -1,5 +1,5 @@
 import { SupportedObjectTypes } from "./types.ts";
-import { Note, CreateActivity, Object as APObject, AtContextContext } from "./types.ts";
+import { Note, CreateActivity, Object as APObject, AtContextContext, Collection } from "./types.ts";
 import { Some, Option, undefinedIfErr } from "../helpers.ts";
 
 function safeUrl(url: unknown): Option<URL> {
@@ -180,6 +180,29 @@ export function readCreateActivity<T extends APObject>(
     });
 }
 
+export function readCollection(json: unknown): Option<Collection> {
+    if (!isObject(json)) {
+        return undefined;
+    }
+    const asObject = readObject(json)?.data;
+    if (asObject === undefined) {
+        return undefined;
+    }
+    if (json.type !== "Collection") {
+        return undefined;
+    }
+    if (typeof json.totalItems !== "number") {
+        return undefined;
+    }
+
+    return Some({
+        ...asObject,
+        type: "Collection",
+        totalItems: json.totalItems,
+        first: json.first
+    });
+}
+
 export function readNote(json: unknown): Option<Note> {
     if (!isObject(json)) {
         return undefined;
@@ -193,7 +216,7 @@ export function readNote(json: unknown): Option<Note> {
     const summary = json.summary;
     const inReplyTo = (() => {
         if (json.inReplyTo === null) { 
-            return null; 
+            return Some(null); 
         } 
         return safeUrl(json.inReplyTo);
     })();
@@ -230,7 +253,7 @@ export function readNote(json: unknown): Option<Note> {
     }
     const inReplyToAtomUri = (() => {
         if (json.inReplyTo === null) { 
-            return null; 
+            return Some(null); 
         } 
         return safeUrl(json.inReplyTo);
     })();
@@ -248,11 +271,66 @@ export function readNote(json: unknown): Option<Note> {
     if (!isObject(json.contentMap)) {
         return undefined;
     }
-    const tmp = json.contentMap;
-    const contentMap: Map<string, string> = new Map(
-        Object.keys(json.contentMap).map(key => [key, tmp[key]])
-    );
+    const contentMap: Map<string, string> = new Map();
+    for (const key in json.contentMap) {
+        const val = json.contentMap[key];
+        if (typeof val !== "string") {
+            return undefined;
+        }
+        contentMap.set(key, val);
+    }
+    if (!Array.isArray(json.attachment)) {
+        return undefined;
+    }
+    const attachment: never[] = [];
+    if (!Array.isArray(json.tag)) {
+        return undefined
+    }
+    const tag: string[] = [];
+    for (const tagItem of json.tag) {
+        if (typeof tagItem !== "string") {
+            return undefined;
+        }
+        tag.push(tagItem);
+    }
+    const replies = readCollection(json.replies);
+    if (replies === undefined) {
+        return undefined;
+    }
+    const likes = readCollection(json.likes);
+    if (likes === undefined) {
+        return undefined;
+    }
+    const shares = readCollection(json.shares);
+    if (shares === undefined) {
+        return undefined;
+    }
 
-    
-    return undefined;
+    const asObject = readObject(json)?.data;
+    if (asObject === undefined) {
+        return undefined;
+    }
+
+    return Some({
+        ...asObject,
+        type: "Note",
+        summary,
+        inReplyTo: inReplyTo?.data,
+        published: published.data,
+        url: url.data,
+        attributedTo: attributedTo.data,
+        to: to.data,
+        cc: cc.data,
+        sensative,
+        atomUri: atomUri?.data,
+        inReplyToAtomUri: inReplyToAtomUri?.data,
+        conversation,
+        content,
+        contentMap,
+        attachment,
+        tag,
+        replies: replies.data,
+        likes: likes.data,
+        shares: shares.data
+    });
 }

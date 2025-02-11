@@ -1,18 +1,18 @@
 import { CreateActivity, Note } from "./types.ts";
-import { readCreateActivity, readObject } from "./jsonToTypes.ts";
+import { readCreateActivity, readNote, readObject } from "./jsonToTypes.ts";
 import { Ok, Result, Err, undefinedIfErr } from "../helpers.ts";
 type HttpStatusCode = number;
 
 function handleCreation(body: string): Result<undefined, HttpStatusCode> {
-    const createActivity = readCreateActivity(body, readObject)?.data;
-    if (createActivity === undefined) {
+    const createActivityUnkown = readCreateActivity(body, readObject)?.data;
+    if (createActivityUnkown === undefined) {
         return Err(400);
     }
 
-    if (createActivity.object.type !== "Note") {
+    if (createActivityUnkown.object.type !== "Note") {
         return Err(501);
     }
-
+    const createActivity = readCreateActivity(body, readNote);
     
 
     return Ok(undefined);
