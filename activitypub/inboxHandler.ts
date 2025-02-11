@@ -4,7 +4,7 @@ import { Ok, Result, Err, undefinedIfErr } from "../helpers.ts";
 type HttpStatusCode = number;
 
 function handleCreation(body: string): Result<undefined, HttpStatusCode> {
-    const createActivity = readCreateActivity(body)?.data;
+    const createActivity = readCreateActivity(body, readObject)?.data;
     if (createActivity === undefined) {
         return Err(400);
     }

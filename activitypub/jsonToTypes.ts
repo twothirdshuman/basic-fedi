@@ -44,6 +44,10 @@ function flatOptions<T>(val: Option<Option<T>[]>): Option<T[]> {
     return Some(ret);
 }
 
+function readURLList(val: unknown): Option<URL[]> {
+    return flatOptions(safeMap(val, (url) => safeUrl(url)));
+}
+
 function isObject(obj: unknown): obj is Record<string, unknown> {
     return Object.prototype.toString.call(obj) === "[object Object]";
 }
@@ -131,7 +135,7 @@ export function readObject(json: unknown): Option<APObject> {
 // This signature is BS pls fix, caller can choose the wrong type if not pased objectFunc
 export function readCreateActivity<T extends APObject>(
     jsonStr: string,
-    objectFunc: (json: unknown) => Option<T> = readObject as (json: unknown) => Option<T>
+    objectFunc: (json: unknown) => Option<T>
   ): Option<CreateActivity<T>> {   
     const asObject = readObject(jsonStr)?.data;
     if (asObject === undefined) {
@@ -152,15 +156,15 @@ export function readCreateActivity<T extends APObject>(
     if (published === undefined || Number.isNaN(published?.valueOf())) {
         return undefined;
     }
-    const to = flatOptions(safeMap(json.to, (url) => safeUrl(url)));
+    const to = readURLList(json.to);
     if (to === undefined) {
         return undefined;
     }
-    const cc = flatOptions(safeMap(json.to, (url) => safeUrl(url)));
+    const cc = readURLList(json.cc);
     if (cc === undefined) {
         return undefined;
     }
-    const object = readObject(json.object);
+    const object = objectFunc(json.object);
     if (object === undefined) {
         return undefined;
     }
@@ -174,4 +178,81 @@ export function readCreateActivity<T extends APObject>(
         cc: cc.data,
         object: object.data
     });
+}
+
+export function readNote(json: unknown): Option<Note> {
+    if (!isObject(json)) {
+        return undefined;
+    }
+    if (json.type !== "Note") {
+        return undefined;
+    }
+    if (typeof json.summary !== "string" && json.summary !== null) {
+        return undefined;
+    }
+    const summary = json.summary;
+    const inReplyTo = (() => {
+        if (json.inReplyTo === null) { 
+            return null; 
+        } 
+        return safeUrl(json.inReplyTo);
+    })();
+    if (inReplyTo === undefined) {
+        return undefined;
+    }
+    const published = safeDate(json.published);
+    if (published === undefined) {
+        return undefined;
+    }
+    const url = safeUrl(json.url);
+    if (url === undefined) {
+        return undefined
+    }
+    const attributedTo = safeUrl(json.attributedTo);
+    if (attributedTo === undefined) {
+        return undefined
+    }
+    const to = readURLList(json.to);
+    if (to === undefined) {
+        return undefined
+    }
+    const cc = readURLList(json.cc);
+    if (cc === undefined) {
+        return undefined;
+    }
+    if (typeof json.sensative !== "boolean") {
+        return undefined;
+    }
+    const sensative = json.sensative;
+    const atomUri = safeUrl(json.atomUri);
+    if (atomUri === undefined) {
+        return undefined
+    }
+    const inReplyToAtomUri = (() => {
+        if (json.inReplyTo === null) { 
+            return null; 
+        } 
+        return safeUrl(json.inReplyTo);
+    })();
+    if (inReplyToAtomUri === undefined) {
+        return undefined;
+    }
+    const conversation = json.conversation;
+    if (typeof conversation !== "string") {
+        return undefined;
+    }
+    const content = json.content;
+    if (typeof content !== "string") {
+        return undefined;
+    }
+    if (!isObject(json.contentMap)) {
+        return undefined;
+    }
+    const tmp = json.contentMap;
+    const contentMap: Map<string, string> = new Map(
+        Object.keys(json.contentMap).map(key => [key, tmp[key]])
+    );
+
+    
+    return undefined;
 }
