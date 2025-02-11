@@ -87,15 +87,18 @@ button:active {
     border-radius: 8px;
 }
 
-.post {
+.post-main {
     padding: 6px;
     border-radius: 6px;
-    border-bottom: 1px solid var(--panel);
     background-color: var(--background);
     transition: all 200ms ease;
     font-size: 1.5rem;
 }
 
-.post:hover {
+.post-main:hover {
     background-color: var(--highlight);
+}
+
+.post-container {
+    border-bottom: 1px solid var(--panel);
 }

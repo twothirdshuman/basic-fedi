@@ -128,7 +128,11 @@ export function readObject(json: unknown): Option<APObject> {
     });
 }
 
-export function readCreateActivity(jsonStr: string): Option<CreateActivity<APObject>> {
+// This signature is BS pls fix, caller can choose the wrong type if not pased objectFunc
+export function readCreateActivity<T extends APObject>(
+    jsonStr: string,
+    objectFunc: (json: unknown) => Option<T> = readObject as (json: unknown) => Option<T>
+  ): Option<CreateActivity<T>> {   
     const asObject = readObject(jsonStr)?.data;
     if (asObject === undefined) {
         return undefined;

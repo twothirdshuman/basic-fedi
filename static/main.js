@@ -30,6 +30,9 @@ const WritePostColumn = () => {
      */
     let textAreaRef = undefined;
     const onClick = () => {
+        if (textAreaRef?.value === "") {
+            return;
+        }
         setWaah(waah() + 1);
         if (textAreaRef !== undefined) {
             const posts = getPosts();
@@ -69,8 +72,10 @@ const WritePostColumn = () => {
  */
 const Post = (props) => {
     return html`
-        <div class="post">
-            <span>${props.postText}</span>
+        <div class="post-container">
+            <div class="post-main">
+                <span>${props.postText}</span>
+            </div>
         </div>
     `;
 };
