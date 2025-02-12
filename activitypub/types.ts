@@ -22,7 +22,7 @@ export interface Note extends Object {
     conversation: string;
     content: string;
     contentMap: Map<string, string>;
-    attachment: null[]; // no clue array type
+    attachment: never[]; // no clue array type, prolly list of URLs
     tag: string[]; // no clue type assumed string
     replies: Collection;
     likes: Collection;
