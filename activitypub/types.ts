@@ -16,7 +16,7 @@ export interface Note extends Object {
     attributedTo: URL;
     to: URL[];
     cc: URL[];
-    sensative: boolean;
+    sensitive: boolean;
     atomUri: URL;
     inReplyToAtomUri: null | URL; // assumed
     conversation: string;

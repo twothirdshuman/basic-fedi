@@ -1,6 +1,4 @@
 import { ulid } from "jsr:@std/ulid";
-import { Note } from "./activitypub/types.ts";
-
 const kv = await Deno.openKv("kvdb");
 
 export interface User {

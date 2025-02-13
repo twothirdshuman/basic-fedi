@@ -1,6 +1,6 @@
 import { SupportedObjectTypes } from "./types.ts";
 import { Note, CreateActivity, Object as APObject, AtContextContext, Collection } from "./types.ts";
-import { Some, Option, undefinedIfErr } from "../helpers.ts";
+import { Some, Option, undefinedIfErr, isObject, flatOptions, safeMap } from "../helpers.ts";
 
 function safeUrl(url: unknown): Option<URL> {
     if (url instanceof URL || typeof url === "string") {
@@ -20,36 +20,8 @@ function safeDate(date: unknown): Option<Date> {
     return Some(dateRet);
 }
 
-function safeMap<T>(arr: unknown, func: (item: unknown) => T): Option<T[]> {
-    if (!Array.isArray(arr)) {
-        return undefined;
-    }
-
-    return Some(arr.map(func));
-} 
-
-function flatOptions<T>(val: Option<Option<T>[]>): Option<T[]> {
-    if (val === undefined) {
-        return undefined;
-    }
-    const ret = [];
-
-    for (const v of val.data) {
-        if (v === undefined) {
-            return undefined;
-        }
-        ret.push(v.data);
-    }
-
-    return Some(ret);
-}
-
 function readURLList(val: unknown): Option<URL[]> {
     return flatOptions(safeMap(val, (url) => safeUrl(url)));
-}
-
-function isObject(obj: unknown): obj is Record<string, unknown> {
-    return Object.prototype.toString.call(obj) === "[object Object]";
 }
 
 function parseAtContext(atContext: unknown): Option<AtContextContext | AtContextContext[]> {
@@ -243,10 +215,10 @@ export function readNote(json: unknown): Option<Note> {
     if (cc === undefined) {
         return undefined;
     }
-    if (typeof json.sensative !== "boolean") {
+    if (typeof json.sensitive !== "boolean") {
         return undefined;
     }
-    const sensative = json.sensative;
+    const sensitive = json.sensitive;
     const atomUri = safeUrl(json.atomUri);
     if (atomUri === undefined) {
         return undefined
@@ -321,7 +293,7 @@ export function readNote(json: unknown): Option<Note> {
         attributedTo: attributedTo.data,
         to: to.data,
         cc: cc.data,
-        sensative,
+        sensitive,
         atomUri: atomUri?.data,
         inReplyToAtomUri: inReplyToAtomUri?.data,
         conversation,

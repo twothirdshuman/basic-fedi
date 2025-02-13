@@ -1,9 +1,9 @@
-import { CreateActivity, Note } from "./types.ts";
 import { ulid } from "jsr:@std/ulid";
 import { readCreateActivity, readNote, readObject } from "./jsonToTypes.ts";
-import { Ok, Result, Err, undefinedIfErr } from "../helpers.ts";
+import { Ok, Result, Err } from "../helpers.ts";
 import { addToInbox, InboxNote } from "../database.ts";
 import { USER } from "../config.ts";
+import { verifyRequest } from "./signature/httpSign.ts";
 type HttpStatusCode = number;
 interface IncomingMessage {
     body: string,
@@ -40,11 +40,18 @@ function handleCreation(incoming: IncomingMessage): Result<Promise<Deno.KvCommit
     return Ok(promiseDB);
 }
 
-async function writeMessageToFS(incoming: IncomingMessage) {
-    await Deno.writeFile(`dbs/${incoming.ulid}.json`, new TextEncoder().encode(incoming.body));
+async function writeMessageToFS(incoming: IncomingMessage, request: Request) {
+    const headers = Array.from(request.headers.entries());
+
+    await Deno.writeFile(`dbs/${incoming.ulid}.json`, new TextEncoder().encode(JSON.stringify({
+        headers: headers,
+        body: (() => {try { return JSON.parse(incoming.body); } catch (_) { return incoming.body; }})()
+    })));
 }
 
 export async function inboxEndpoint(req: Request): Promise<Result<undefined, HttpStatusCode>> {
+    const result = verifyRequest(req.clone());
+
     const incoming: IncomingMessage = {
         body: await req.text(),
         ulid: ulid(),
@@ -58,15 +65,19 @@ export async function inboxEndpoint(req: Request): Promise<Result<undefined, Htt
         return Ok(undefined);
     }
 
-    const promises: Promise<unknown>[] = [writeMessageToFS(incoming)];
+    const writePromise = writeMessageToFS(incoming, req.clone());
     if (object.type === "Create") {
         const result = handleCreation(incoming);
         if (result.status === "error") {
+            await writePromise;
             return Err(result.data);
+        }
+        if (!await result.data.then(() => true).catch(() => false)) {
+            await writePromise;
+            return Err(500);
         }
     }
     
-   
-
+    await writePromise;
     return Ok(undefined);
 }

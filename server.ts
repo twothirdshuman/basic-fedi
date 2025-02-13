@@ -1,6 +1,7 @@
+import { inboxEndpoint } from "./activitypub/inboxHandler.ts";
 import * as CONFIG from "./config.ts";
 import { Router } from "./router.ts";
-import { ulid } from "jsr:@std/ulid";
+
 import { parseArgs } from "jsr:@std/cli/parse-args";
 
 const router = new Router();
@@ -10,8 +11,12 @@ router.get("/", (_) => {
 })
 
 router.post("/users/*/inbox", async (req) => {
-    return new Response(null, {status:501});
-})
+    const result = await inboxEndpoint(req);
+    if (result.status === "ok") {
+        return new Response(null, {status:201});
+    }
+    return new Response(null, {status:result.data});
+});
 
 router.get(`/users/${CONFIG.USER}`, async (_) => {
     const publicKey = await Deno.readFile("private/user/public.pem")

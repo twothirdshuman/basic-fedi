@@ -10,3 +10,29 @@ export function undefinedIfErr<T>(func: () => T): undefined | T {
         return undefined;
     }
 }
+export function safeMap<T>(arr: unknown, func: (item: unknown) => T): Option<T[]> {
+    if (!Array.isArray(arr)) {
+        return undefined;
+    }
+
+    return Some(arr.map(func));
+} 
+
+export function flatOptions<T>(val: Option<Option<T>[]>): Option<T[]> {
+    if (val === undefined) {
+        return undefined;
+    }
+    const ret = [];
+
+    for (const v of val.data) {
+        if (v === undefined) {
+            return undefined;
+        }
+        ret.push(v.data);
+    }
+
+    return Some(ret);
+}
+export function isObject(obj: unknown): obj is Record<string, unknown> {
+    return Object.prototype.toString.call(obj) === "[object Object]";
+}

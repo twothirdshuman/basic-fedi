@@ -1,5 +1,7 @@
-import { toBase64, fromBase64 } from "./cryptoHelpers.ts";
+import { toBase64, fromBase64, importRSAPublicKey } from "./cryptoHelpers.ts";
 import * as CONFIG from "../../config.ts";
+import { isObject } from "../../helpers.ts";
+import { signRequest } from "./followReq.ts";
 
 type IsValidSignature = boolean;
 type ValidRequest = Request;
@@ -126,6 +128,7 @@ export async function verifySignature(request: Request, cryptoKey: CryptoKey): P
     if (!await containsValidHeaders(request)) {
         return false;
     }
+
     const signedString = getSignedString(request);
     if (signedString === undefined) {
         return false;
@@ -147,4 +150,51 @@ export async function verifySignature(request: Request, cryptoKey: CryptoKey): P
         signature,
         new TextEncoder().encode(signedString)
     );
+}
+
+async function getKey(keyId: string): Promise<CryptoKey | undefined> {
+
+    const req = new Request(new URL(keyId), { 
+        headers: {
+            "Accept": "application/activity+json"
+        }
+    });
+
+    const responseJson: unknown = await fetch(await signRequest(req))
+        .then(res => {
+            if (!res.ok) {
+                throw "Err";
+            }
+            return res.json()
+        }).catch(_ => undefined);
+    
+    if (!isObject(responseJson)) {
+        return undefined;
+    }
+
+    if (!isObject(responseJson.publicKey)) {
+        return undefined;
+    }
+    const keyPem = responseJson.publicKey.publicKeyPem;
+    if (typeof keyPem !== "string") {
+        return undefined;
+    } 
+    return importRSAPublicKey(keyPem);
+}
+
+export async function verifyRequest(request: Request): Promise<IsValidSignature> {
+    if (!await containsValidHeaders(request.clone())) {
+        return false;
+    }
+    const signatureHeader = signatureHeaderFromRequest(request);
+    if (signatureHeader === undefined) {
+        return false;
+    }
+
+    const key = await getKey(signatureHeader.keyId)
+    if (key === undefined) {
+        return false;
+    }
+
+    return await verifySignature(request, key);
 }
