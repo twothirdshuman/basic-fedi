@@ -1,8 +1,11 @@
 export type SupportedObjectTypes = "Delete" | "Accept" | "Create" | "Note" | "Collection";
 export type AtContextContext = URL | Map<string, URL>; 
 
-export interface Object {
+export interface JSONLD {
     "@context": AtContextContext | AtContextContext[];
+}
+
+export interface Object {
     type: SupportedObjectTypes;
     id: URL;
 };
@@ -31,7 +34,7 @@ export interface Note extends Object {
     
 export interface Collection extends Object {
     type: "Collection";
-    totalItems: number;
+    totalItems?: number;
     first?: unknown; // no fucking clue some object i think
 }
 

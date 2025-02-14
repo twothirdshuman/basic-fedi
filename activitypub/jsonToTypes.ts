@@ -23,7 +23,7 @@ function safeDate(date: unknown): Option<Date> {
 function readURLList(val: unknown): Option<URL[]> {
     return flatOptions(safeMap(val, (url) => safeUrl(url)));
 }
-
+/*
 function parseAtContext(atContext: unknown): Option<AtContextContext | AtContextContext[]> {
     const parseOneContext = (oneContext: unknown): Option<AtContextContext> => {
         if (typeof oneContext === "string") {
@@ -56,7 +56,7 @@ function parseAtContext(atContext: unknown): Option<AtContextContext | AtContext
     }
     return Some(ret);
 }
-
+*/
 function parseObjectType(val: unknown): Option<SupportedObjectTypes> {
     if (typeof val !== "string") {
         return undefined;
@@ -82,11 +82,6 @@ export function readObject(json: unknown): Option<APObject> {
         return undefined;
     }
 
-    const context = parseAtContext(json["@context"]) 
-    if (context === undefined) {
-        return undefined;
-    }
-
     const id = undefinedIfErr(() => safeUrl(json.id))?.data;
     if (id === undefined) {
         return undefined;
@@ -98,7 +93,6 @@ export function readObject(json: unknown): Option<APObject> {
     }
 
     return Some({
-        "@context": context.data,
         "id": id,
         "type": objectType.data
     });
@@ -163,7 +157,7 @@ export function readCollection(json: unknown): Option<Collection> {
     if (json.type !== "Collection") {
         return undefined;
     }
-    if (typeof json.totalItems !== "number") {
+    if (typeof json.totalItems !== "number" && typeof json.totalItems !== "undefined") {
         return undefined;
     }
 
