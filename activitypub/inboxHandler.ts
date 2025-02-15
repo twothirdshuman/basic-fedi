@@ -42,26 +42,26 @@ function handleCreation(incoming: IncomingMessage): Result<Promise<Deno.KvCommit
 
 async function writeMessageToFS(incoming: IncomingMessage, request: Request) {
     const headers = Array.from(request.headers.entries());
+    const result = verifyRequest(request.clone());
 
     await Deno.writeFile(`dbs/${incoming.ulid}.json`, new TextEncoder().encode(JSON.stringify({
+        verificationSuccess: await result,
         headers: headers,
         body: (() => {try { return JSON.parse(incoming.body); } catch (_) { return incoming.body; }})()
     })));
 }
 
 export async function inboxEndpoint(req: Request): Promise<Result<undefined, HttpStatusCode>> {
-    const result = verifyRequest(req.clone());
-
     const incoming: IncomingMessage = {
-        body: await req.text(),
+        body: await req.clone().text(),
         ulid: ulid(),
     };
-
     const object = readObject(incoming.body)?.data;
     if (object === undefined) {
         return Err(400);
     }
     if (object.type === "Delete") {
+        console.log(`Throwing away delete request. verificationSuccess: ${verifyRequest(req.clone())}`)
         return Ok(undefined);
     }
 
