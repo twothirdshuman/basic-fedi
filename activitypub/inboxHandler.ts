@@ -30,7 +30,7 @@ function handleCreation(incoming: IncomingMessage): Result<Promise<Deno.KvCommit
             content: createActivity.object.content,
             published: createActivity.object.published.toString(),
             cw: null,
-            sensative: createActivity.object.sensative
+            sensative: createActivity.object.sensitive
         }
     };
 
