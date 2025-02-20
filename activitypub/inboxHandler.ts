@@ -61,7 +61,7 @@ export async function inboxEndpoint(req: Request): Promise<Result<undefined, Htt
         return Err(400);
     }
     if (object.type === "Delete") {
-        console.log(`Throwing away delete request. verificationSuccess: ${verifyRequest(req.clone())}`)
+        console.log(`Throwing away delete request. verificationSuccess: ${await verifyRequest(req.clone())}`)
         return Ok(undefined);
     }
 
