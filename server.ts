@@ -19,7 +19,7 @@ router.post("/users/*/inbox", async (req) => {
 });
 
 router.get(`/users/${CONFIG.USER}`, async (_) => {
-    const publicKey = await Deno.readFile("private/user/public.pem")
+    const publicKey = await Deno.readFile("dbs/private/user/public.pem")
         .then(byteArr => new TextDecoder("utf-8").decode(byteArr));
 
     return new Response(JSON.stringify({
