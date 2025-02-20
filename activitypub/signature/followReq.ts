@@ -71,7 +71,7 @@ export async function follow(recipientUrl: URL, recipientInbox: URL): Promise<un
 }
 
 export async function signRequest(request: Request): Promise<Request> {
-    const privateKey = await importRSAPrivateKey(new TextDecoder("utf-8").decode(await Deno.readFile("private/user/private.pem")));
+    const privateKey = await importRSAPrivateKey(new TextDecoder("utf-8").decode(await Deno.readFile("dbs/private/user/private.pem")));
 
     const currentDate = new Date().toUTCString();
 
