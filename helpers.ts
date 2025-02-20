@@ -34,5 +34,5 @@ export function flatOptions<T>(val: Option<Option<T>[]>): Option<T[]> {
     return Some(ret);
 }
 export function isObject(obj: unknown): obj is Record<string, unknown> {
-    return Object.prototype.toString.call(obj) === "[object Object]";
+    return typeof obj === "object" && !!obj;
 }
