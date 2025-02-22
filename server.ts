@@ -1,11 +1,24 @@
 import { inboxEndpoint } from "./activitypub/inboxHandler.ts";
+import { setCheckDate } from "./activitypub/signature/httpSign.ts";
 import * as CONFIG from "./config.ts";
-import { getNotes } from "./database.ts";
+import { addToInbox, getNotes } from "./database.ts";
 import { Router } from "./router.ts";
 
 import { parseArgs } from "jsr:@std/cli/parse-args";
 import { serveFile, serveDir } from "jsr:@std/http";
 
+setTimeout(async () => {
+    const res = await fetch("http://192.168.1.123:8006/01JMJ7290N09AB1TXV4CA83HSP.json");
+    const body = await res.json();
+    setCheckDate(false);
+
+    const ress = await fetch(`http://127.0.0.1:8000/users/${CONFIG.USER}/inbox`, {
+        method: "POST",
+        body: JSON.stringify(body.body),
+        headers: body.headers   
+    });
+    console.log(ress.ok);
+}, 100);
 
 const router = new Router();
 
