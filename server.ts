@@ -81,6 +81,7 @@ const flags = parseArgs(Deno.args, {
 Deno.serve({
     port: Number(flags.port)
 }, (req) => {
+    console.log(`request for ${req.url} method ${req.method} signatureHeader: ${req.headers.get("Signature")}`);
     const response = router.serve(req);
     if (response !== undefined) {
         return response;
