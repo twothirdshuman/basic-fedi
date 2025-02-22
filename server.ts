@@ -1,5 +1,6 @@
 import { inboxEndpoint } from "./activitypub/inboxHandler.ts";
 import * as CONFIG from "./config.ts";
+import { getNotes } from "./database.ts";
 import { Router } from "./router.ts";
 
 import { parseArgs } from "jsr:@std/cli/parse-args";
@@ -9,6 +10,19 @@ const router = new Router();
 router.get("/", (_) => {
     return new Response("this is /");
 })
+
+router.get("/api/kulupium/v0/getPosts", async (_) => {
+
+    const notes = await getNotes({username:CONFIG.USER});
+    
+
+    return new Response(JSON.stringify(notes), {
+        status: 200,
+        headers: {
+            "Content-Type": "application/json"
+        }
+    });
+});
 
 router.post("/users/*/inbox", async (req) => {
     const result = await inboxEndpoint(req);
