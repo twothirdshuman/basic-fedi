@@ -67,6 +67,7 @@ export async function inboxEndpoint(req: Request): Promise<Result<undefined, Htt
         } else {
             console.log(`error when reading object err: ${objectResult.data}`);
         }
+        await writeMessageToFS(incoming, req);
         return Err(400);
     }
     const object = objectResult.data;
