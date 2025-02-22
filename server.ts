@@ -4,11 +4,20 @@ import { getNotes } from "./database.ts";
 import { Router } from "./router.ts";
 
 import { parseArgs } from "jsr:@std/cli/parse-args";
+import { serveFile, serveDir } from "jsr:@std/http";
+
 
 const router = new Router();
 
-router.get("/", (_) => {
-    return new Response("this is /");
+router.get("/", (req) => {
+    return serveFile(req, "./static/index.html");
+});
+
+router.get("/static/*", (req) => {
+    return serveDir(req, {
+        fsRoot: "./static",
+        urlRoot: "static"
+    });
 })
 
 router.get("/api/kulupium/v0/getPosts", async (_) => {
