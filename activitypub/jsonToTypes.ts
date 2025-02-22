@@ -1,6 +1,6 @@
 import { SupportedObjectTypes } from "./types.ts";
 import { Note, CreateActivity, Object as APObject, AtContextContext, Collection } from "./types.ts";
-import { Some, Option, undefinedIfErr, isObject, flatOptions, safeMap } from "../helpers.ts";
+import { Some, Option, undefinedIfErr, isObject, flatOptions, safeMap, Result, Ok, Err } from "../helpers.ts";
 
 function safeUrl(url: unknown): Option<URL> {
     if (url instanceof URL || typeof url === "string") {
@@ -73,40 +73,42 @@ function parseObjectType(val: unknown): Option<SupportedObjectTypes> {
     return Some(result as SupportedObjectTypes);
 }
 
-export function readObject(json: unknown): Option<APObject> {
+type readObjectError = "not json object" | "invalid or nonexistant id url" | "unsupported or nonexistant object type";
+export function readObject(json: unknown): Result<APObject, readObjectError> {
     if (typeof json === "string") {
         const tmp = json;
         json = undefinedIfErr(() => JSON.parse(tmp));
     }
     if (!isObject(json)) {
-        return undefined;
+        return Err("not json object");
     }
 
     const id = undefinedIfErr(() => safeUrl(json.id))?.data;
     if (id === undefined) {
-        return undefined;
+        return Err("invalid or nonexistant id url");
     }
 
     const objectType = parseObjectType(json.type);
     if (objectType === undefined) {
-        return undefined;
+        return Err("unsupported or nonexistant object type");
     }
 
-    return Some({
+    return Ok({
         "id": id,
         "type": objectType.data
     });
 }
 
 // This signature is BS pls fix, caller can choose the wrong type if not pased objectFunc
-export function readCreateActivity<T extends APObject>(
+export function readCreateActivity<T extends APObject, _>(
     jsonStr: string,
-    objectFunc: (json: unknown) => Option<T>
+    objectFunc: (json: unknown) => Option<T> | Result<T, _>
   ): Option<CreateActivity<T>> {   
-    const asObject = readObject(jsonStr)?.data;
-    if (asObject === undefined) {
+    const asObjectResult = readObject(jsonStr);
+    if (asObjectResult.status === "error") {
         return undefined;
     }
+    const asObject = asObjectResult.data;
     if (asObject.type !== "Create") {
         return undefined;
     }
@@ -131,7 +133,7 @@ export function readCreateActivity<T extends APObject>(
         return undefined;
     }
     const object = objectFunc(json.object);
-    if (object === undefined) {
+    if (object === undefined || object.status === "error") {
         return undefined;
     }
 
@@ -150,10 +152,11 @@ export function readCollection(json: unknown): Option<Collection> {
     if (!isObject(json)) {
         return undefined;
     }
-    const asObject = readObject(json)?.data;
-    if (asObject === undefined) {
+    const asObjectResult = readObject(json);
+    if (asObjectResult.status === "error") {
         return undefined;
     }
+    const asObject = asObjectResult.data;
     if (json.type !== "Collection") {
         return undefined;
     }
@@ -272,10 +275,11 @@ export function readNote(json: unknown): Option<Note> {
         return undefined;
     }
 
-    const asObject = readObject(json)?.data;
-    if (asObject === undefined) {
+    const asObjectResult = readObject(json);
+    if (asObjectResult.status === "error") {
         return undefined;
     }
+    const asObject = asObjectResult.data;
 
     return Some({
         ...asObject,

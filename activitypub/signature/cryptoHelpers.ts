@@ -66,7 +66,6 @@ export async function importRSAPublicKey(pem: string): Promise<CryptoKey> {
 
 export async function exportRSAPublicKey(key: CryptoKey): Promise<string> {
     const publicKey = await crypto.subtle.exportKey("spki", key);
-    const publicKeyBinary = new Uint8Array(publicKey);
-    const publicKeyBase64 = toBase64(publicKeyBinary);
+    const publicKeyBase64 = toBase64(publicKey);
     return `-----BEGIN PUBLIC KEY-----\n${publicKeyBase64}\n-----END PUBLIC KEY-----`;
 }

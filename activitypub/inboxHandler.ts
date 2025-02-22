@@ -56,16 +56,27 @@ export async function inboxEndpoint(req: Request): Promise<Result<undefined, Htt
         body: await req.clone().text(),
         ulid: ulid(),
     };
-    const object = readObject(incoming.body)?.data;
-    if (object === undefined) {
+    const objectResult = readObject(incoming.body);
+    if (objectResult.status === "error") {
+        if (objectResult.data === "unsupported or nonexistant object type") {
+            try {
+                console.log(`tried to parse unsupported object type: ${JSON.parse(incoming.body).type}`);
+            } catch (_) {
+                console.log("something went very wrong");
+            }
+        } else {
+            console.log(`error when reading object err: ${objectResult.data}`);
+        }
         return Err(400);
     }
+    const object = objectResult.data;
     if (object.type === "Delete") {
-        console.log(`Throwing away delete request. verificationSuccess: ${JSON.stringify(await verifyRequest(req.clone()))}`)
+        console.log(`Throwing away delete request. verificationSuccess: ${JSON.stringify(await verifyRequest(req.clone()))}`);
         return Ok(undefined);
     }
+    console.log(`Got ${object.type} request. verificationSuccess: ${JSON.stringify(await verifyRequest(req.clone()))}`);
 
-    const writePromise = writeMessageToFS(incoming, req.clone());
+    const writePromise = writeMessageToFS(incoming, req);
     if (object.type === "Create") {
         const result = handleCreation(incoming);
         if (result.status === "error") {
