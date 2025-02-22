@@ -152,34 +152,34 @@ export async function verifySignature(request: Request, cryptoKey: CryptoKey): P
     );
 }
 
-async function getKey(keyId: string): Promise<CryptoKey | undefined> {
+async function getKey(keyId: string): Promise<Result<CryptoKey, string>> {
 
     const req = new Request(new URL(keyId), { 
         headers: {
             "Accept": "application/activity+json"
         }
     });
-
-    const responseJson: unknown = await fetch(await signRequest(req))
-        .then(res => {
-            if (!res.ok) {
-                throw "Err";
-            }
-            return res.json()
-        }).catch(_ => undefined);
+    const response = await fetch(await signRequest(req)).catch(_ => undefined);
+    if (response === undefined) {
+        return Err(`could not fetch ${keyId}`);
+    }
+    if (!response.ok) {
+        return Err(`fetch returned err: ${response.status} body: ${await response.text()}`);
+    }
+    const responseJson: unknown = await response.json().catch(_ => undefined);
     
     if (!isObject(responseJson)) {
-        return undefined;
+        return Err(`fetch did not return json object`);
     }
 
     if (!isObject(responseJson.publicKey)) {
-        return undefined;
+        return Err(`json object doesn't contain publicKey`);
     }
     const keyPem = responseJson.publicKey.publicKeyPem;
     if (typeof keyPem !== "string") {
-        return undefined;
+        return Err(`json object doesn't contain publicKey.publicKeyPem`);
     } 
-    return importRSAPublicKey(keyPem);
+    return Ok(await importRSAPublicKey(keyPem));
 }
 
 export async function verifyRequest(request: Request): Promise<IsValidSignature> {
@@ -192,9 +192,9 @@ export async function verifyRequest(request: Request): Promise<IsValidSignature>
     }
 
     const key = await getKey(signatureHeader.keyId)
-    if (key === undefined) {
-        return Err("Unable to get key");
+    if (key.status === "error") {
+        return Err(`Unable to get key. KeyError: ${key.data}`);
     }
 
-    return Ok(await verifySignature(request, key));
+    return Ok(await verifySignature(request, key.data));
 }
