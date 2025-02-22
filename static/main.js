@@ -3,6 +3,8 @@ import { createSignal, batch, For } from "https://esm.sh/solid-js@1.8.1";
 // import { createStore } from "https://esm.sh/solid-js@1.8.1/store"
 import { render } from "https://esm.sh/solid-js@1.8.1/web";
 import html from "https://esm.sh/solid-js@1.8.1/html";
+
+import DOMPurify from "https://esm.sh/dompurify";
 /**
  * @type {string[]}
  */
@@ -64,6 +66,17 @@ const WritePostColumn = () => {
     `;
 };
 
+/**
+ * 
+ * @param {string} input
+ * @returns {string} 
+ */
+function sanitizeHTML(input) {
+    return DOMPurify.sanitize(input, {
+      ALLOWED_TAGS: ["p", "a", "del", "pre", "blockquote", "code", "b", "strong", "u", "i", "em", "ul", "ol", "li", "h1", "h2", "h3", "h4", "h5", "h6"], // Your tags
+      ALLOWED_ATTR: ["href"]
+    });
+}
 
 
 /**
@@ -74,7 +87,7 @@ const Post = (props) => {
     return html`
         <div class="post-container">
             <div class="post-main">
-                <span>${props.postText}</span>
+                <span innerHTML=${sanitizeHTML(props.postText)}></span>
             </div>
         </div>
     `;
