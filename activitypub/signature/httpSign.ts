@@ -1,9 +1,9 @@
 import { toBase64, fromBase64, importRSAPublicKey } from "./cryptoHelpers.ts";
 import * as CONFIG from "../../config.ts";
-import { isObject } from "../../helpers.ts";
+import { isObject, Ok, Err, Result } from "../../helpers.ts";
 import { signRequest } from "./followReq.ts";
 
-type IsValidSignature = boolean;
+type IsValidSignature = Result<boolean, string>;
 type ValidRequest = Request;
 interface SignatureHeader {
     keyId: string;
@@ -124,7 +124,7 @@ function getSignedString(request: ValidRequest): string | undefined {
     return signedString.trim();
 }
 
-export async function verifySignature(request: Request, cryptoKey: CryptoKey): Promise<IsValidSignature> {
+export async function verifySignature(request: Request, cryptoKey: CryptoKey): Promise<boolean> {
     if (!await containsValidHeaders(request)) {
         return false;
     }
@@ -184,17 +184,17 @@ async function getKey(keyId: string): Promise<CryptoKey | undefined> {
 
 export async function verifyRequest(request: Request): Promise<IsValidSignature> {
     if (!await containsValidHeaders(request.clone())) {
-        return false;
+        return Err("contains invalid headers");
     }
     const signatureHeader = signatureHeaderFromRequest(request);
     if (signatureHeader === undefined) {
-        return false;
+        return Err("cannot find signature header");
     }
 
     const key = await getKey(signatureHeader.keyId)
     if (key === undefined) {
-        return false;
+        return Err("Unable to get key");
     }
 
-    return await verifySignature(request, key);
+    return Ok(await verifySignature(request, key));
 }
