@@ -2,7 +2,7 @@ import { assert } from "jsr:@std/assert";
 import { verifySignature, setCheckDate } from "../activitypub/signature/httpSign.ts"; 
 import { importRSAPublicKey } from "../activitypub/signature/cryptoHelpers.ts";
 
-export function test() {
+export default function test() {
     Deno.test("can check rarely typical", async () => {
         setCheckDate(false);
     

@@ -1,4 +1,4 @@
 export const HOSTNAME = "fedi-test.mooo.com";
 export const USER = "rarely-typical";
 
-export const KV_URI = "dbs/db";
+export const DB_PATH = "dbs/db.sqlite";

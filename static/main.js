@@ -11,7 +11,7 @@ import DOMPurify from "https://esm.sh/dompurify";
 const emptyArr = [];
 const [getPosts, setPosts] = createSignal(emptyArr);
 fetch("/api/kulupium/v0/getPosts").then(r => r.json()).then(j => {
-    /** @type {import("../database.ts").InboxNote[]} */
+    /** @type {import("../database.ts").Note[]} */
     const json = j;
     const arr = json.map(note => note.message.content);
     setPosts(arr);
